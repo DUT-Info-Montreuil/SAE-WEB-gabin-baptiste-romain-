@@ -13,6 +13,9 @@
             <ul>
                 <?php if ($is_logged_in): ?>
                     <li>
+                        <a href="index.php?page=barman"> Espace Barman (Caisse)</a>
+                    </li>
+                    <li>
                         <span>Bonjour, <strong><?php echo htmlspecialchars($user_email); ?></strong></span>
                         <span>(Solde : <?php echo number_format($user_balance, 2, ',', ' '); ?> €)</span>
                     </li>
