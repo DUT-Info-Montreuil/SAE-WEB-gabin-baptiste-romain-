@@ -52,8 +52,7 @@
                     <li>
                         <h3><?php echo htmlspecialchars($org['name']); ?></h3>
                         <p>Adresse : <?php echo htmlspecialchars($org['address']); ?></p>
-                        <!-- Lien vers les détails (à implémenter plus tard) -->
-                        <!-- <a href="index.php?page=buvette&id=<?php echo $org['id']; ?>">Voir les produits</a> -->
+                        <a href="index.php?page=orga&id=<?php echo $org['id']; ?>">Voir les articles</a>
                     </li>
                 <?php endforeach; ?>
             </ul>
