@@ -79,7 +79,6 @@ class BarmanController {
             }
         }
 
-        // Recherche Client (GET)
         $searchResults = [];
         $searchQuery = $_GET['q'] ?? '';
         if (!empty($searchQuery) && strlen($searchQuery) >= 2) {

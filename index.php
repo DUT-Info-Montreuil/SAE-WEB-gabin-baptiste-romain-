@@ -26,10 +26,10 @@ switch ($page) {
         $controller = new BarmanController();
         $controller->index();
         break;
-        // Suppression des anciennes routes AJAX inutiles
-        case 'home':
-        default:
-            $controller = new HomeController();
+    // Suppression des anciennes routes AJAX inutiles
+    case 'home':
+    default:
+        $controller = new HomeController();
         $controller->index();
         break;
 }
