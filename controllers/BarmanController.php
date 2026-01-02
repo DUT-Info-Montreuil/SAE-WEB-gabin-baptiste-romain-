@@ -14,6 +14,15 @@ class BarmanController {
             exit;
         }
 
+        // Nouvelle action pour l'affichage de la liste des stocks
+        $view = $_GET['view'] ?? 'caisse';
+        
+        if ($view === 'stocks') {
+            $products = $this->barmanModel->getAllProducts();
+            require_once __DIR__ . '/../views/StockVue.php';
+            exit;
+        }
+
         // Initialisation du panier s'il n'existe pas
         if (!isset($_SESSION['cart'])) {
             $_SESSION['cart'] = [];
@@ -24,14 +33,14 @@ class BarmanController {
             $_SESSION['selected_client'] = null;
         }
 
-        // Gestion des actions (Ajout panier, Recherche client, Validation, Reset)
+        // Ajout panier, Recherche client, Validation, Reset
         if ($_SERVER['REQUEST_METHOD'] === 'POST') {
             $action = $_POST['action'] ?? '';
 
             if ($action === 'add_to_cart') {
                 $id = $_POST['product_id'];
                 $name = $_POST['product_name'];
-                $price = $_POST['product_price'];
+                $price = (float)$_POST['product_price'];
 
                 // Vérif si déjà dans le panier
                 $found = false;
@@ -42,19 +51,27 @@ class BarmanController {
                         break;
                     }
                 }
+                unset($item);
+
                 if (!$found) {
                     $_SESSION['cart'][] = ['id' => $id, 'name' => $name, 'price' => $price, 'qty' => 1];
                 }
-            } elseif ($action === 'remove_from_cart') {
+            } elseif ($action === 'remove_one') {
                 $id = $_POST['product_id'];
                 foreach ($_SESSION['cart'] as $key => $item) {
                     if ($item['id'] == $id) {
-                        unset($_SESSION['cart'][$key]);
+                        $_SESSION['cart'][$key]['qty']--;
+
+                        // Si la quantité tombe à 0, on supprime l'article
+                        if ($_SESSION['cart'][$key]['qty'] <= 0) {
+                            unset($_SESSION['cart'][$key]);
+                        }
                         break;
                     }
                 }
-                $_SESSION['cart'] = array_values($_SESSION['cart']); // Réindexer
-            } elseif ($action === 'select_client') {
+                $_SESSION['cart'] = array_values($_SESSION['cart']);
+
+            }elseif ($action === 'select_client') {
                 $clientId = $_POST['client_id'];
                 $_SESSION['selected_client'] = $this->barmanModel->getClientById($clientId);
             } elseif ($action === 'reset_client') {

@@ -10,11 +10,7 @@ class BarmanModel {
 
     // Récupérer tous les produits disponibles
     public function getAllProducts() {
-        // On suppose une table products. 
-        // Si elle n'existe pas encore, il faudra la créer (id, name, price, category, image_url)
         $sql = "SELECT * FROM products ORDER BY name ASC";
-        // Pour éviter une erreur si la table n'existe pas dans votre structure actuelle, 
-        // on entoure d'un try/catch ou on suppose que la table existe comme indiqué dans Organization.php
         try {
             $stmt = $this->pdo->query($sql);
             return $stmt->fetchAll();

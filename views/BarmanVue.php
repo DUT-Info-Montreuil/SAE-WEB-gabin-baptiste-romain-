@@ -7,10 +7,13 @@
 </head>
 <body>
 
-<div style="display:flex; justify-content: space-between; align-items: center;">
-    <h1>Interface Caisse</h1>
-    <a href="index.php">Retour Accueil</a>
-</div>
+    <div style="display:flex; justify-content: space-between; align-items: center;">
+        <h1>Caisse</h1>
+        <div>
+            <a href="index.php?page=barman&view=stocks" style="margin-right: 20px";>Liste des Stocks</a>
+            <a href="index.php">Retour Accueil</a>
+        </div>
+    </div>
 
 <?php if (isset($success_message)): ?><div class="msg success"><?php echo $success_message; ?></div><?php endif; ?>
 <?php if (isset($error_message)): ?><div class="msg error"><?php echo $error_message; ?></div><?php endif; ?>
@@ -59,7 +62,14 @@
 
         <h3>2. Panier</h3>
         <table>
-            <thead><tr><th>Nom</th><th>Qté</th><th>Prix</th></tr></thead>
+            <thead>
+            <tr>
+                <th>Nom</th>
+                <th>Qté</th>
+                <th>Prix</th>
+                <th></th>
+            </tr>
+            </thead>
             <tbody>
             <?php $total = 0; foreach (($_SESSION['cart'] ?? []) as $item):
                 $line = $item['price'] * $item['qty']; $total += $line; ?>
@@ -67,6 +77,13 @@
                     <td><?php echo htmlspecialchars($item['name']); ?></td>
                     <td><?php echo $item['qty']; ?></td>
                     <td><?php echo number_format($line, 2); ?>€</td>
+                    <td style="text-align: right; padding-right: 25px;">
+                        <form method="POST" style="display:inline;">
+                            <input type="hidden" name="action" value="remove_one">
+                            <input type="hidden" name="product_id" value="<?php echo $item['id']; ?>">
+                            <button type="submit" style="color: red; border: none; font-size: 1.2em;"> [ - ] </button>
+                        </form>
+                    </td>
                 </tr>
             <?php endforeach; ?>
             </tbody>
