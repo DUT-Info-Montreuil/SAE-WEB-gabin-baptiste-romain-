@@ -21,19 +21,20 @@ class cont_solde{
         }
 
         switch($this->action) {
-            case 'recharge':
+            case 'add':
                 $this->recharge();
                 break;
             case 'show':
             default:
-                $this->showBalance();
+                $this->display();
                 break;
         }
     }
 
-    private function showBalance($message = null) {
+    private function display($message = null) {
         $balance = $this->model->getBalance($_SESSION['user_id']);
-        $this->view->displayBalance($balance, $message);
+        $history = $this->model->getOrderHistory($_SESSION['user_id']);
+        $this->view->displaySolde($balance, $history, $message);
     }
 
     private function recharge() {
@@ -50,6 +51,6 @@ class cont_solde{
             $message = "Veuillez entrer un montant valide.";
         }
 
-        $this->showBalance($message);
+        $this->display($message);
     }
 }

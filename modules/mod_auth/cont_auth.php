@@ -57,9 +57,16 @@ class cont_auth {
     }
 
     public function register() {
+        $nom = $_POST['nom'] ?? '';
+        $prenom = $_POST['prenom'] ?? '';
         $email = $_POST['email'] ?? '';
         $pwd = $_POST['password'] ?? '';
         $conf = $_POST['confirm_password'] ?? '';
+
+        if (empty($nom) || empty($prenom) || empty($email) || empty($pwd)) {
+            $this->view->form_register("Veuillez remplir tous les champs.");
+            return;
+        }
 
         if ($pwd !== $conf) {
             $this->view->form_register("Les mots de passe ne correspondent pas.");
@@ -70,7 +77,7 @@ class cont_auth {
             return;
         }
 
-        if ($this->model->createUser($email, $pwd)) {
+        if ($this->model->createUser($nom, $prenom, $email, $pwd)) {
             $this->view->form_login("Compte créé ! Veuillez vous connecter.");
         } else {
             $this->view->form_register("Erreur technique.");

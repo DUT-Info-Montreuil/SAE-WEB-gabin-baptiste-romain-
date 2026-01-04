@@ -1,5 +1,5 @@
 <?php
-require_once __DIR__ . "/../Connection.php";
+require_once __DIR__ . "/../../Connection.php";
 
 class modele_auth extends Connection {
 
@@ -13,11 +13,10 @@ class modele_auth extends Connection {
         return $stmt->fetch();
     }
 
-    public function createUser($email, $password) {
+    public function createUser($nom, $prenom, $email, $password) {
         $hashed_password = password_hash($password, PASSWORD_DEFAULT);
-        // On met des valeurs par défaut pour nom et prenom car ils sont NOT NULL dans script.sql
         $stmt = self::$db->prepare("INSERT INTO Utilisateur (nom, prenom, email, password) VALUES (?, ?, ?, ?)");
-        return $stmt->execute(['Nom', 'Prénom', $email, $hashed_password]);
+        return $stmt->execute([$nom, $prenom, $email, $hashed_password]);
     }
 
     public function userExists($email) {

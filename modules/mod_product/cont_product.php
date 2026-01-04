@@ -18,7 +18,7 @@ class cont_product {
             exit;
         }
 
-        $product = $this->model->getProduct($id);
+        $product = $this->model->getProductById($id);
         $this->view->displayProduct($product);
     }
 }
