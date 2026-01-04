@@ -9,7 +9,7 @@ class modele_barman extends Connection {
 
     public function getAllProducts() {
         try {
-            $sql = "SELECT * FROM products ORDER BY name ASC";
+            $sql = "SELECT id, nom AS name, prix_vente AS price, stock_actuel AS stock FROM Produit ORDER BY nom ASC";
             $stmt = self::$db->query($sql);
             return $stmt->fetchAll();
         } catch (PDOException $e) {
@@ -18,14 +18,20 @@ class modele_barman extends Connection {
     }
 
     public function searchClient($query) {
-        $sql = "SELECT id, email, balance FROM users WHERE email LIKE :query LIMIT 10";
+        $sql = "SELECT u.id, u.email, em.solde AS balance 
+                FROM Utilisateur u 
+                LEFT JOIN etre_membre em ON u.id = em.id_utilisateur 
+                WHERE u.email LIKE :query LIMIT 10";
         $stmt = self::$db->prepare($sql);
         $stmt->execute([':query' => "%$query%"]);
         return $stmt->fetchAll();
     }
 
     public function getClientById($id) {
-        $sql = "SELECT id, email, balance FROM users WHERE id = :id";
+        $sql = "SELECT u.id, u.email, em.solde AS balance 
+                FROM Utilisateur u 
+                LEFT JOIN etre_membre em ON u.id = em.id_utilisateur 
+                WHERE u.id = :id";
         $stmt = self::$db->prepare($sql);
         $stmt->execute([':id' => $id]);
         return $stmt->fetch();
@@ -35,18 +41,17 @@ class modele_barman extends Connection {
         try {
             self::$db->beginTransaction();
 
-            // Vérification solde
-            $stmt = self::$db->prepare("SELECT balance FROM users WHERE id = ? FOR UPDATE");
+            // Vérification solde (sur la première buvette trouvée pour l'instant)
+            $stmt = self::$db->prepare("SELECT solde, id_buvette FROM etre_membre WHERE id_utilisateur = ? FOR UPDATE");
             $stmt->execute([$clientId]);
-            $currentBalance = $stmt->fetchColumn();
+            $membership = $stmt->fetch();
 
-            if ($currentBalance === false) throw new Exception("Client introuvable.");
-            if ($currentBalance < $totalAmount) throw new Exception("Solde insuffisant.");
+            if (!$membership) throw new Exception("Client non membre d'une buvette.");
+            if ($membership['solde'] < $totalAmount) throw new Exception("Solde insuffisant.");
 
             // Débit
-            $newBalance = $currentBalance - $totalAmount;
-            $updateStmt = self::$db->prepare("UPDATE users SET balance = ? WHERE id = ?");
-            $updateStmt->execute([$newBalance, $clientId]);
+            $updateStmt = self::$db->prepare("UPDATE etre_membre SET solde = solde - ? WHERE id_utilisateur = ? AND id_buvette = ?");
+            $updateStmt->execute([$totalAmount, $clientId, $membership['id_buvette']]);
 
             self::$db->commit();
             return true;

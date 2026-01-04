@@ -8,23 +8,26 @@ class modele_solde extends Connection {
     }
 
     public function getBalance($userId) {
-        $stmt = self::$db->prepare("SELECT balance FROM users WHERE id = ?");
+        $stmt = self::$db->prepare("SELECT solde FROM etre_membre WHERE id_utilisateur = ? LIMIT 1");
         $stmt->execute([$userId]);
-        return $stmt->fetchColumn();
+        return $stmt->fetchColumn() ?: 0;
     }
 
     public function addMoney($userId, $amount) {
         try {
             self::$db->beginTransaction();
 
-            $stmt = self::$db->prepare("SELECT balance FROM users WHERE id = ? FOR UPDATE");
+            $stmt = self::$db->prepare("SELECT solde, id_buvette FROM etre_membre WHERE id_utilisateur = ? FOR UPDATE LIMIT 1");
             $stmt->execute([$userId]);
-            $currentBalance = $stmt->fetchColumn();
+            $membership = $stmt->fetch();
 
-            $newBalance = $currentBalance + $amount;
+            if (!$membership) {
+                // Si l'utilisateur n'est membre d'aucune buvette, on ne peut pas ajouter de solde dans ce schéma
+                throw new Exception("L'utilisateur doit être membre d'au moins une buvette.");
+            }
 
-            $update = self::$db->prepare("UPDATE users SET balance = ? WHERE id = ?");
-            $update->execute([$newBalance, $userId]);
+            $update = self::$db->prepare("UPDATE etre_membre SET solde = solde + ? WHERE id_utilisateur = ? AND id_buvette = ?");
+            $update->execute([$amount, $userId, $membership['id_buvette']]);
 
             self::$db->commit();
             return true;
