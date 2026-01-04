@@ -1,39 +1,42 @@
 <?php
+ini_set('display_errors', 1);
+ini_set('display_startup_errors', 1);
+error_reporting(E_ALL);
 session_start();
 
-// Chargement des contrôleurs
-require_once 'controllers/AuthController.php';
-require_once 'controllers/HomeController.php';
-require_once 'controllers/ProductController.php';
-require_once 'controllers/OrgaController.php'; // Ajout du contrôleur manquant
-
-// Routeur simple
+// Routeur modulaire
 $page = $_GET['page'] ?? 'home';
 
 switch ($page) {
-    case 'login':
-        $controller = new AuthController();
-        $controller->login();
-        break;
-    case 'register':
-        $controller = new AuthController();
-        $controller->register();
-        break;
-    case 'logout':
-        $controller = new AuthController();
-        $controller->logout();
+    case 'auth':
+        require_once 'mod_auth/mod_auth.php';
+        $module = new mod_auth();
+        $module->exec();
         break;
     case 'product':
-        $controller = new ProductController();
-        $controller->detail();
+        require_once 'mod_product/mod_product.php';
+        $module = new mod_product();
+        $module->exec();
         break;
     case 'orga':
-        $controller = new OrgaController();
-        $controller->detail();
+        require_once 'mod_orga/mod_orga.php';
+        $module = new mod_orga();
+        $module->exec();
+        break;
+    case 'barman':
+        require_once 'mod_barmen/mod_barman.php';
+        $module = new mod_barman();
+        $module->exec();
+        break;
+    case 'solde':
+        require_once 'mod_solde/mod_solde.php';
+        $module = new mod_solde();
+        $module->exec();
         break;
     case 'home':
     default:
-        $controller = new HomeController();
-        $controller->index();
+        require_once 'mod_home/mod_home.php';
+        $module = new mod_home();
+        $module->exec();
         break;
 }
