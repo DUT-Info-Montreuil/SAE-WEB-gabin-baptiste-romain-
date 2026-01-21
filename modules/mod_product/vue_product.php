@@ -6,7 +6,13 @@ class vue_product {
             return; 
         }
         $cart = $_SESSION['cart'] ?? [];
-        $qty = isset($cart[$p['id']]) ? $cart[$p['id']]['quantity'] : 0;
+        $qty = 0;
+        foreach ($cart as $buvetteItems) {
+            if (isset($buvetteItems[$p['id']])) {
+                $qty = $buvetteItems[$p['id']]['quantity'];
+                break;
+            }
+        }
         ?>
         <div class="pb-20 md:pb-8 pt-4" id="product-container-<?= $p['id'] ?>">
             <div class="bg-white px-4 py-6 shadow-sm mb-6 border-b border-gray-100 rounded-3xl mx-4">
@@ -22,6 +28,12 @@ class vue_product {
                 <div class="bg-white rounded-3xl p-8 shadow-xl border border-gray-100 relative overflow-hidden">
                     <div class="badge-in-cart absolute top-0 right-0 bg-indigo-600 text-white text-xs font-black px-6 py-2 rounded-bl-3xl shadow-lg <?= $qty > 0 ? '' : 'hidden' ?>">Déjà au panier</div>
                     
+                    <?php if (!empty($p['photo'])): ?>
+                        <div class="w-full h-64 rounded-2xl mb-8 overflow-hidden bg-gray-50 flex items-center justify-center">
+                            <img src="<?= htmlspecialchars($p['photo']) ?>" class="h-full w-full object-contain">
+                        </div>
+                    <?php endif; ?>
+
                     <h1 class="text-4xl font-black text-gray-900 leading-none mb-2"><?php echo htmlspecialchars($p['name']); ?></h1>
                     <div class="inline-block bg-indigo-50 text-indigo-700 text-2xl font-black px-4 py-2 rounded-2xl mb-8">
                         <?php echo number_format($p['price'], 2); ?> €
@@ -56,11 +68,21 @@ class vue_product {
 
     public function displayProductCard($product) {
         $cart = $_SESSION['cart'] ?? [];
-        $qty = isset($cart[$product['id']]) ? $cart[$product['id']]['quantity'] : 0;
+        $qty = 0;
+        foreach ($cart as $buvetteItems) {
+            if (isset($buvetteItems[$product['id']])) {
+                $qty = $buvetteItems[$product['id']]['quantity'];
+                break;
+            }
+        }
         ?>
         <div class="flex flex-col h-full">
             <div class="bg-gray-50 h-32 rounded-xl mb-4 flex items-center justify-center text-gray-300 relative overflow-hidden">
-                <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <?php if (!empty($product['photo'])): ?>
+                    <img src="<?= htmlspecialchars($product['photo']) ?>" class="w-full h-full object-cover">
+                <?php else: ?>
+                    <svg class="w-12 h-12" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4"></path></svg>
+                <?php endif; ?>
                 <div class="badge-in-cart absolute top-2 right-2 bg-indigo-600 text-white text-[10px] font-black px-2 py-1 rounded-lg shadow-lg <?= $qty > 0 ? '' : 'hidden' ?>">Dans le panier</div>
             </div>
             <h5 class="text-xl font-black text-gray-900 mb-1 truncate"><?= htmlspecialchars($product['name']) ?></h5>

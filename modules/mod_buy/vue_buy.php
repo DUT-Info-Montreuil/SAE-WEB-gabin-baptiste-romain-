@@ -1,16 +1,15 @@
 <?php
 class vue_buy {
-    public function displayCart($cart, $message = null, $success = false) {
-        $total = 0;
-        foreach ($cart as $item) {
-            $total += $item['price'] * $item['quantity'];
-        }
+    public function displayCart($cart, $message = null, $success = false, $returnBuvetteId = null) {
+        // Calculate global total if needed, or just iterate.
+        // Cart structure: [buvetteId => [productId => item]]
         require_once __DIR__ . '/../mod_product/vue_product.php';
         $pv = new vue_product();
+        $backLink = $returnBuvetteId ? "index.php?page=orga&id=" . $returnBuvetteId : "index.php";
         ?>
         <div class="max-w-xl mx-auto px-4 py-8 pb-32">
             <header class="mb-8">
-                <a href="index.php" class="text-indigo-600 font-bold text-xs uppercase flex items-center mb-4">
+                <a href="<?= $backLink ?>" class="text-indigo-600 font-bold text-xs uppercase flex items-center mb-4">
                     <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
                     Retour
                 </a>
@@ -33,44 +32,54 @@ class vue_buy {
                         <a href="index.php" class="inline-block px-8 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-indigo-100">Découvrir les buvettes</a>
                     </div>
                 <?php else: ?>
-                    <div class="space-y-4 mb-8">
-                        <?php foreach ($cart as $id => $item): ?>
-                            <div class="cart-item bg-white rounded-2xl p-4 flex items-center justify-between border border-gray-100 shadow-sm" data-product-id="<?= $id ?>">
-                                <div class="flex-grow">
-                                    <h4 class="font-black text-gray-900 leading-tight">
-                                        <?= htmlspecialchars($item['name']) ?>
-                                        <?php if(isset($item['buvette_name'])): ?>
-                                            <span class="text-xs text-gray-400 font-bold block"><?= htmlspecialchars($item['buvette_name']) ?></span>
-                                        <?php endif; ?>
-                                    </h4>
-                                    <p class="text-indigo-600 font-bold text-sm"><?= number_format($item['price'], 2) ?> € / unité</p>
+                    <div class="space-y-8">
+                        <?php foreach ($cart as $buvetteId => $items): 
+                            if (empty($items)) continue;
+                            $firstItem = reset($items);
+                            $buvetteName = $firstItem['buvette_name'] ?? 'Buvette Inconnue';
+                            $totalBuvette = 0;
+                            foreach ($items as $item) $totalBuvette += $item['price'] * $item['quantity'];
+                        ?>
+                            <div class="bg-white rounded-3xl p-6 shadow-lg border border-gray-100">
+                                <h2 class="text-xl font-black text-gray-900 mb-4 flex items-center gap-2">
+                                    <span class="w-2 h-8 bg-indigo-600 rounded-full block"></span>
+                                    <?= htmlspecialchars($buvetteName) ?>
+                                </h2>
+
+                                <div class="space-y-4 mb-6">
+                                    <?php foreach ($items as $id => $item): ?>
+                                        <div class="cart-item flex items-center justify-between border-b border-gray-50 pb-4 last:border-0 last:pb-0" data-product-id="<?= $id ?>">
+                                            <div class="flex-grow">
+                                                <h4 class="font-bold text-gray-900 leading-tight">
+                                                    <?= htmlspecialchars($item['name']) ?>
+                                                </h4>
+                                                <p class="text-indigo-600 font-bold text-sm"><?= number_format($item['price'], 2) ?> € / unité</p>
+                                            </div>
+                                            <div class="flex items-center space-x-4">
+                                                <div class="cart-controls cart-page-controls" data-product-id="<?= $id ?>">
+                                                    <?php $pv->renderCartControls($id, $item['quantity']); ?>
+                                                </div>
+                                                <span class="font-black text-gray-900 w-20 text-right item-total-price"><?= number_format($item['price'] * $item['quantity'], 2) ?> €</span>
+                                                <a href="index.php?page=buy&action=remove&id_product=<?= $id ?>" class="text-red-400 hover:text-red-600 p-2">
+                                                    <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                                </a>
+                                            </div>
+                                        </div>
+                                    <?php endforeach; ?>
                                 </div>
-                                <div class="flex items-center space-x-4">
-                                    <div class="cart-controls cart-page-controls" data-product-id="<?= $id ?>">
-                                        <?php $pv->renderCartControls($id, $item['quantity']); ?>
+
+                                <div class="bg-gray-50 rounded-2xl p-4 flex flex-col md:flex-row items-center justify-between gap-4">
+                                    <div class="flex items-center gap-2">
+                                        <span class="text-gray-500 font-bold uppercase text-xs tracking-widest">Total</span>
+                                        <span class="text-2xl font-black text-gray-900"><?= number_format($totalBuvette, 2) ?> €</span>
                                     </div>
-                                    <span class="font-black text-gray-900 w-20 text-right item-total-price"><?= number_format($item['price'] * $item['quantity'], 2) ?> €</span>
-                                    <a href="index.php?page=buy&action=remove&id_product=<?= $id ?>" class="text-red-400 hover:text-red-600 p-2">
-                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
+                                    
+                                    <a href="index.php?page=buy&action=confirm&buvette_id=<?= $buvetteId ?>" class="w-full md:w-auto px-8 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-indigo-100 hover:bg-indigo-700 transition-colors text-center">
+                                        Payer pour cette buvette
                                     </a>
                                 </div>
                             </div>
                         <?php endforeach; ?>
-                    </div>
-
-                    <div class="bg-indigo-900 rounded-3xl p-8 text-white shadow-2xl">
-                        <div class="flex justify-between items-center mb-8">
-                            <span class="text-indigo-300 font-bold uppercase tracking-widest text-xs">Total à payer</span>
-                            <span class="text-4xl font-black"><span id="cart-total-price"><?= number_format($total, 2) ?></span> €</span>
-                        </div>
-                        
-                                            <a href="index.php?page=buy&action=confirm" class="block w-full text-center py-5 bg-white text-indigo-600 rounded-2xl font-black uppercase text-sm tracking-widest shadow-xl transform active:scale-95 transition-transform border-2 border-transparent hover:border-indigo-400">
-                        
-                                                Confirmer l'achat
-                        
-                                            </a>
-                        
-                        
                     </div>
                 <?php endif; ?>
             </div>

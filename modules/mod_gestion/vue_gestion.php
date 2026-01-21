@@ -1,6 +1,6 @@
 <?php
 class vue_gestion {
-    public function displayGestion($orga, $products, $history, $transactions, $message = null) {
+    public function displayGestion($orga, $products, $history, $transactions, $requests, $message = null) {
         ?>
         <div id="app-gestion" class="pb-32">
             <div class="max-w-7xl mx-auto px-4 py-6">
@@ -30,6 +30,12 @@ class vue_gestion {
                 <div class="flex space-x-1 bg-gray-100 p-1.5 rounded-2xl mt-8 mb-8 max-w-3xl mx-auto overflow-x-auto no-scrollbar">
                     <button @click="currentTab = 'products'" :class="currentTab === 'products' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-indigo-600'" class="flex-1 py-3 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap">Produits</button>
                     <button @click="currentTab = 'sales'" :class="currentTab === 'sales' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-indigo-600'" class="flex-1 py-3 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap">Ventes</button>
+                    <button @click="currentTab = 'requests'" :class="currentTab === 'requests' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-indigo-600'" class="flex-1 py-3 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap relative">
+                        Adhésions
+                        <?php if(count($requests) > 0): ?>
+                            <span class="absolute top-1 right-1 w-2 h-2 bg-red-500 rounded-full"></span>
+                        <?php endif; ?>
+                    </button>
                     <button @click="currentTab = 'stock'" :class="currentTab === 'stock' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-indigo-600'" class="flex-1 py-3 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap">Stock</button>
                     <button @click="currentTab = 'barmen'" :class="currentTab === 'barmen' ? 'bg-white text-indigo-600 shadow-sm' : 'text-gray-500 hover:text-indigo-600'" class="flex-1 py-3 px-4 text-[10px] font-black uppercase tracking-widest rounded-xl transition-all whitespace-nowrap">Barmen</button>
                 </div>
@@ -52,7 +58,10 @@ class vue_gestion {
                         </div>
 
                         <div v-for="p in filteredProducts" :key="p.id" class="bg-white rounded-3xl p-6 shadow-sm border border-gray-100 flex flex-col h-full relative group transition-all hover:shadow-xl hover:-translate-y-1">
-                            <div class="bg-gray-50 h-32 rounded-2xl mb-4 flex items-center justify-center text-gray-300 italic text-[10px] uppercase font-black text-center p-2">Image non disponible</div>
+                            <div class="bg-gray-50 h-32 rounded-2xl mb-4 flex items-center justify-center text-gray-300 italic text-[10px] uppercase font-black text-center relative overflow-hidden">
+                                <img v-if="p.photo" :src="p.photo" class="w-full h-full object-cover absolute inset-0">
+                                <span v-else class="p-2">Image non disponible</span>
+                            </div>
                             <span class="inline-block bg-indigo-50 text-indigo-600 text-[10px] font-black uppercase px-2 py-1 rounded-lg mb-2 self-start">{{ p.categorie || 'Divers' }}</span>
                             <h4 class="text-xl font-black text-gray-900 truncate">{{ p.nom }}</h4>
                             <p class="text-indigo-600 font-black text-lg mb-2">{{ parseFloat(p.prix_vente).toFixed(2) }} €</p>
@@ -92,6 +101,52 @@ class vue_gestion {
                             </div>
                         <?php endforeach; ?>
                     </div>
+                </div>
+
+                <div v-show="currentTab === 'requests'" class="max-w-4xl mx-auto space-y-6">
+                    <h3 class="text-xl font-black text-gray-900 mb-6 flex items-center px-2">
+                        <span class="bg-indigo-600 w-1.5 h-6 mr-3 rounded-full"></span>
+                        Demandes d'adhésion (<?= count($requests) ?>)
+                    </h3>
+                    
+                    <?php if (empty($requests)): ?>
+                        <div class="bg-white rounded-3xl p-12 text-center border-2 border-dashed border-gray-200">
+                            <p class="text-gray-400 font-bold uppercase tracking-wider">Aucune demande en attente</p>
+                        </div>
+                    <?php else: ?>
+                        <div class="space-y-4">
+                            <?php foreach ($requests as $req): ?>
+                                <div class="bg-white rounded-2xl p-6 shadow-sm border border-gray-100 flex flex-col md:flex-row md:items-center justify-between gap-4">
+                                    <div>
+                                        <div class="flex items-center gap-2 mb-1">
+                                            <h4 class="font-black text-gray-900 text-lg"><?= htmlspecialchars($req['prenom_form'] . ' ' . $req['nom_form']) ?></h4>
+                                            <?php if ($req['est_majeur']): ?>
+                                                <span class="bg-indigo-50 text-indigo-600 text-[9px] font-black px-2 py-0.5 rounded uppercase">Majeur</span>
+                                            <?php else: ?>
+                                                <span class="bg-red-50 text-red-600 text-[9px] font-black px-2 py-0.5 rounded uppercase">Mineur</span>
+                                            <?php endif; ?>
+                                        </div>
+                                        <p class="text-gray-500 text-sm flex items-center">
+                                            <svg class="w-4 h-4 mr-1 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z"></path><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z"></path></svg>
+                                            <?= htmlspecialchars($req['adresse_form']) ?>
+                                        </p>
+                                        <p class="text-[10px] text-gray-300 font-bold uppercase mt-2">Demandé le <?= date('d/m/Y H:i', strtotime($req['date_demande'])) ?></p>
+                                    </div>
+                                    
+                                    <div class="flex gap-2">
+                                        <form method="post" action="index.php?page=gestion&id=<?= $orga['id'] ?>&action=accept_request">
+                                            <input type="hidden" name="req_id" value="<?= $req['id'] ?>">
+                                            <button type="submit" class="px-6 py-2 bg-green-500 text-white rounded-xl font-bold text-xs uppercase tracking-widest shadow-md hover:bg-green-600 transition active:scale-95">Accepter</button>
+                                        </form>
+                                        <form method="post" action="index.php?page=gestion&id=<?= $orga['id'] ?>&action=reject_request">
+                                            <input type="hidden" name="req_id" value="<?= $req['id'] ?>">
+                                            <button type="submit" class="px-6 py-2 bg-red-50 text-red-500 border border-red-100 rounded-xl font-bold text-xs uppercase tracking-widest hover:bg-red-100 transition active:scale-95">Refuser</button>
+                                        </form>
+                                    </div>
+                                </div>
+                            <?php endforeach; ?>
+                        </div>
+                    <?php endif; ?>
                 </div>
 
                 <div v-show="currentTab === 'stock'" class="max-w-3xl mx-auto space-y-10">
@@ -196,9 +251,18 @@ class vue_gestion {
                 <div class="bg-white rounded-3xl p-8 max-w-lg w-full shadow-2xl relative">
                     <button @click="showModal = false" class="absolute top-6 right-6 text-gray-400 hover:text-gray-600 transition"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button>
                     <h3 class="text-2xl font-black text-gray-900 mb-6 uppercase tracking-tighter">{{ isEditMode ? 'Modifier' : 'Nouveau produit' }}</h3>
-                    <form :action="isEditMode ? 'index.php?page=gestion&id=<?= $orga['id'] ?>&action=update_product' : 'index.php?page=gestion&id=<?= $orga['id'] ?>&action=add_product'" method="POST" class="space-y-5">
+                    <form :action="isEditMode ? 'index.php?page=gestion&id=<?= $orga['id'] ?>&action=update_product' : 'index.php?page=gestion&id=<?= $orga['id'] ?>&action=add_product'" method="POST" enctype="multipart/form-data" class="space-y-5">
                         <input type="hidden" name="id_produit" :value="form.id">
                         <div><label class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Nom</label><input name="nom" v-model="form.nom" type="text" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 font-bold"></div>
+                        
+                        <div>
+                            <label class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Photo</label>
+                            <div v-if="isEditMode && form.photo" class="mb-2">
+                                <img :src="form.photo" class="h-20 w-20 object-cover rounded-lg border border-gray-100">
+                            </div>
+                            <input type="file" name="photo" accept="image/*" class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl focus:ring-2 focus:ring-indigo-500 text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-black file:uppercase file:bg-indigo-50 file:text-indigo-700 hover:file:bg-indigo-100">
+                        </div>
+
                         <div class="grid grid-cols-2 gap-4">
                             <div><label class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Prix (€)</label><input name="prix" v-model="form.prix_vente" type="number" step="0.01" required class="w-full px-4 py-3 bg-gray-50 border border-gray-100 rounded-xl font-bold"></div>
                             <div><label class="text-[10px] font-black uppercase tracking-widest text-gray-400 block mb-2 ml-1">Catégorie</label>
@@ -250,7 +314,7 @@ class vue_gestion {
                             },
                             openAddModal() {
                                 this.isEditMode = false;
-                                this.form = { id: '', nom: '', prix_vente: '', description: '', stock: 0, categorie: 'Divers' };
+                                this.form = { id: '', nom: '', prix_vente: '', description: '', stock: 0, categorie: 'Divers', photo: '' };
                                 this.showModal = true;
                             }
                         }

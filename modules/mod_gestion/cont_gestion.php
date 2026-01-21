@@ -46,6 +46,12 @@ class cont_gestion {
             case 'create_barman':
                 $this->createBarman();
                 break;
+            case 'accept_request':
+                $this->acceptRequest();
+                break;
+            case 'reject_request':
+                $this->rejectRequest();
+                break;
         }
     }
 
@@ -54,7 +60,8 @@ class cont_gestion {
         $products = $this->model->getProductsByOrga($this->orgaId);
         $history = $this->model->getStockHistory($this->orgaId);
         $transactions = $this->model->getBuvetteTransactions($this->orgaId);
-        $this->view->displayGestion($orga, $products, $history, $transactions, $message);
+        $requests = $this->model->getPendingRequests($this->orgaId);
+        $this->view->displayGestion($orga, $products, $history, $transactions, $requests, $message);
     }
 
     private function displayEdit() {
@@ -65,6 +72,24 @@ class cont_gestion {
             $this->view->displayEditForm($orga, $product);
         } else {
             $this->display("Produit introuvable.");
+        }
+    }
+
+    private function acceptRequest() {
+        $reqId = $_POST['req_id'] ?? null;
+        if ($reqId && $this->model->acceptRequest($reqId)) {
+            $this->display("Demande acceptée !");
+        } else {
+            $this->display("Erreur lors de l'acceptation.");
+        }
+    }
+
+    private function rejectRequest() {
+        $reqId = $_POST['req_id'] ?? null;
+        if ($reqId && $this->model->rejectRequest($reqId)) {
+            $this->display("Demande refusée.");
+        } else {
+            $this->display("Erreur lors du refus.");
         }
     }
 
@@ -130,8 +155,13 @@ class cont_gestion {
         $cat = $_POST['categorie'] ?? 'Divers';
         $prix = $_POST['prix'] ?? 0;
         $stock = $_POST['stock'] ?? 0;
+        $photo = null;
 
-        if ($this->model->addProduct($nom, $desc, $cat, $prix, $stock, $this->orgaId)) {
+        if (isset($_FILES['photo'])) {
+            $photo = $this->uploadImage($_FILES['photo'], 'uploads/produits');
+        }
+
+        if ($this->model->addProduct($nom, $desc, $cat, $prix, $stock, $this->orgaId, $photo)) {
             $this->display("Produit ajouté avec succès !");
         } else {
             $this->display("Erreur lors de l'ajout du produit.");
@@ -144,12 +174,35 @@ class cont_gestion {
         $desc = $_POST['description'] ?? '';
         $cat = $_POST['categorie'] ?? 'Divers';
         $prix = $_POST['prix'] ?? 0;
+        $photo = null;
 
-        if ($id && $this->model->updateProduct($id, $nom, $desc, $cat, $prix)) {
+        if (isset($_FILES['photo']) && $_FILES['photo']['error'] == UPLOAD_ERR_OK) {
+            $photo = $this->uploadImage($_FILES['photo'], 'uploads/produits');
+        }
+
+        if ($id && $this->model->updateProduct($id, $nom, $desc, $cat, $prix, $photo)) {
             $this->display("Produit mis à jour !");
         } else {
             $this->display("Erreur lors de la mise à jour.");
         }
+    }
+
+    private function uploadImage($file, $targetDir) {
+        if ($file['error'] !== UPLOAD_ERR_OK) return null;
+        
+        $ext = strtolower(pathinfo($file['name'], PATHINFO_EXTENSION));
+        $allowed = ['jpg', 'jpeg', 'png', 'gif', 'webp'];
+        if (!in_array($ext, $allowed)) return null;
+
+        if (!is_dir($targetDir)) mkdir($targetDir, 0777, true);
+
+        $filename = uniqid() . '.' . $ext;
+        $targetFile = $targetDir . '/' . $filename;
+        
+        if (move_uploaded_file($file['tmp_name'], $targetFile)) {
+            return $targetFile;
+        }
+        return null;
     }
 }
 ?>

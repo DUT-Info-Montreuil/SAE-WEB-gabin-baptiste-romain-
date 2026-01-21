@@ -8,7 +8,7 @@ class modele_home extends Connection {
     }
 
     public function getAllOrgas($search = '') {
-        $sql = "SELECT id, nom AS name, adresse AS address FROM Buvette";
+        $sql = "SELECT id, nom AS name, adresse AS address, photo FROM Buvette";
         $params = [];
         if (!empty($search)) {
             $sql .= " WHERE nom LIKE ? OR adresse LIKE ?";
@@ -20,7 +20,7 @@ class modele_home extends Connection {
     }
 
     public function getTopOrgas() {
-        $sql = "SELECT b.id, b.nom AS name, b.adresse AS address, COUNT(em.id_utilisateur) as member_count 
+        $sql = "SELECT b.id, b.nom AS name, b.adresse AS address, b.photo, COUNT(em.id_utilisateur) as member_count 
                 FROM Buvette b 
                 LEFT JOIN etre_membre em ON b.id = em.id_buvette 
                 GROUP BY b.id 
@@ -44,7 +44,7 @@ class modele_home extends Connection {
     }
 
     public function getFavorites($userId) {
-        $stmt = self::$db->prepare("SELECT b.id, b.nom AS name, b.adresse AS address 
+        $stmt = self::$db->prepare("SELECT b.id, b.nom AS name, b.adresse AS address, b.photo 
                                    FROM Buvette b 
                                    JOIN Favoris f ON b.id = f.id_buvette 
                                    WHERE f.id_utilisateur = ?");

@@ -32,23 +32,30 @@ class cont_solde{
     }
 
     private function display($message = null) {
-        $balance = $this->model->getBalance($_SESSION['user_id']);
-        $history = $this->model->getOrderHistory($_SESSION['user_id']);
-        $this->view->displayBalance($balance, $history, $message);
+        $buvetteId = $_GET['buvette_id'] ?? null;
+        $balances = $this->model->getBalances($_SESSION['user_id'], $buvetteId);
+        $history = $this->model->getOrderHistory($_SESSION['user_id'], $buvetteId);
+        $this->view->displayBalance($balances, $history, $message, $buvetteId);
     }
 
     private function recharge() {
         $amount = $_POST['amount'] ?? 0;
+        $buvetteId = $_POST['buvette_id'] ?? null;
         $message = '';
 
-        if ($amount > 0) {
-            if ($this->model->addMoney($_SESSION['user_id'], $amount)) {
+        if ($amount > 0 && $buvetteId) {
+            if ($this->model->addMoney($_SESSION['user_id'], $buvetteId, $amount)) {
                 $message = "Votre compte a été rechargé de " . htmlspecialchars($amount) . " €.";
             } else {
                 $message = "Une erreur est survenue lors du rechargement.";
             }
         } else {
-            $message = "Veuillez entrer un montant valide.";
+            $message = "Veuillez entrer un montant valide et choisir une buvette.";
+        }
+        
+        // Preserve buvette context in redirection/display
+        if ($buvetteId) {
+            $_GET['buvette_id'] = $buvetteId;
         }
 
         $this->display($message);

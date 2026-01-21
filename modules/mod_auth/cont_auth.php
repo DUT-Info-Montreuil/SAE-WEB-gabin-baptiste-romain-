@@ -49,6 +49,7 @@ class cont_auth {
         if ($user && password_verify($password, $user['password'])) {
             $_SESSION['user_id'] = $user['id'];
             $_SESSION['user_email'] = $user['email'];
+            $_SESSION['is_admin'] = (bool)($user['est_admin'] ?? 0);
             header("Location: index.php");
             exit;
         } else {

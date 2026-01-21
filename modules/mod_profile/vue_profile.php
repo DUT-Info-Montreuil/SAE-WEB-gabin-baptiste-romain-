@@ -52,10 +52,23 @@ class vue_profile {
                     </button>
                 </form>
 
-                <?php if (!empty($roles)): ?>
+                <?php if (!empty($roles) || !empty($_SESSION['is_admin'])): ?>
                     <div class="mt-10 pt-8 border-t border-gray-50">
                         <h3 class="text-xs font-black uppercase tracking-widest text-gray-400 mb-4 ml-1">Mes Accès Staff</h3>
                         <div class="space-y-3">
+                            <?php if (!empty($_SESSION['is_admin'])): ?>
+                                <div class="flex items-center justify-between bg-indigo-900 p-4 rounded-2xl border border-indigo-800 shadow-indigo-100 shadow-lg mb-4">
+                                    <div class="flex-grow pr-4 text-left">
+                                        <p class="font-black text-white leading-tight truncate">Administration Globale</p>
+                                        <p class="text-[10px] font-bold uppercase text-indigo-300 mt-0.5">Super Admin</p>
+                                    </div>
+                                    <a href="index.php?page=admin" 
+                                       class="px-4 py-2 bg-white text-indigo-900 rounded-xl text-[10px] font-black uppercase tracking-widest shadow-lg active:scale-95 transition-transform">
+                                        Gérer
+                                    </a>
+                                </div>
+                            <?php endif; ?>
+
                             <?php foreach ($roles as $row): ?>
                                 <div class="flex items-center justify-between bg-gray-50 p-4 rounded-2xl border border-gray-100">
                                     <div class="flex-grow pr-4 text-left">

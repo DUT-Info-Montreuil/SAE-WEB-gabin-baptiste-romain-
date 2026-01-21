@@ -2,6 +2,32 @@
 class vue_barman {
     public function menu() {}
 
+     public function afficher_dashboard($buvettes) {
+        ?>
+        <div class="max-w-7xl mx-auto px-4 py-12">
+            <header class="mb-10 text-center">
+                <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tighter mb-2">Tableau de bord Barman</h1>
+                <p class="text-gray-500 font-medium italic">Où travaillez-vous aujourd'hui ?</p>
+            </header>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                <?php foreach ($buvettes as $buvette): ?>
+                    <a href="index.php?page=barman&action=select_buvette&id=<?= $buvette['id'] ?>" 
+                       class="group bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:border-indigo-500 hover:shadow-xl transition-all relative overflow-hidden">
+                        <div class="relative z-10">
+                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-2 block">Accéder à la</span>
+                            <h2 class="text-2xl font-black text-gray-900 group-hover:text-indigo-600 transition-colors"><?= htmlspecialchars($buvette['nom']) ?></h2>
+                        </div>
+                        <div class="absolute -right-4 -bottom-4 text-gray-50 group-hover:text-indigo-50 transition-colors">
+                            <svg class="w-32 h-32" fill="currentColor" viewBox="0 0 24 24"><path d="M21 5V3H3v2l8 9v5H6v2h12v-2h-5v-5l8-9zM7.43 7L5.66 5h12.69l-1.78 2H7.43z"/></svg>
+                        </div>
+                    </a>
+                <?php endforeach; ?>
+            </div>
+        </div>
+        <?php
+    }
+
     public function afficher_interface($products, $searchResults, $searchQuery, $pendingOrders, $msgSuccess = null, $msgError = null) {
         $client = $_SESSION['selected_client'] ?? null;
         $cart = $_SESSION['cart_barman'] ?? [];
@@ -9,12 +35,15 @@ class vue_barman {
         foreach($cart as $item) $total += $item['price'] * $item['qty'];
         $buvetteId = $_GET['id'] ?? '';
         ?>
-        
+
         <div id="app-barman" class="pb-12">
             <div class="max-w-7xl mx-auto px-4 py-6">
-                <header class="mb-6">
-                    <a href="index.php?page=profile" class="text-indigo-600 font-bold text-xs uppercase flex items-center">
+                <header class="mb-6 flex justify-between items-center">
+                    <a href="index.php?page=barman&action=dashboard" class="text-indigo-600 font-bold text-xs uppercase flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Changer de Buvette
+                    </a>
+                    <a href="index.php?page=profile" class="text-gray-400 font-bold text-xs uppercase flex items-center hover:text-gray-600">
                         Retour au Profil
                     </a>
                 </header>
@@ -64,6 +93,7 @@ class vue_barman {
                 <div v-show="currentTab === 'client'" class="max-w-2xl mx-auto space-y-6">
                     <form action="index.php" method="GET" class="relative">
                         <input type="hidden" name="page" value="barman">
+                        <input type="hidden" name="action" value="caisse">
                         <input type="hidden" name="id" value="<?= $buvetteId ?>">
                         <input type="text" name="q" id="search-input" placeholder="Email du client..." value="<?= htmlspecialchars($searchQuery) ?>" class="w-full pl-14 pr-4 py-5 bg-white border-2 border-gray-100 rounded-3xl focus:border-indigo-500 focus:outline-none shadow-xl transition-all font-bold text-lg">
                         <svg class="w-6 h-6 absolute left-5 top-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>
@@ -94,7 +124,7 @@ class vue_barman {
                 <div v-show="currentTab === 'products'" class="grid grid-cols-1 lg:grid-cols-3 gap-8">
                     <div class="lg:col-span-2 grid grid-cols-2 sm:grid-cols-3 gap-4">
                         <?php foreach($products as $p): ?>
-                            <div onclick="barmanUpdateCart(<?= $p['id'] ?>, 'add_to_cart', {product_name: '<?= addslashes($p['name']) ?>', product_price: <?= $p['price'] ?>})" 
+                            <div onclick="barmanUpdateCart(<?= $p['id'] ?>, 'add_to_cart', {product_name: '<?= addslashes($p['name']) ?>', product_price: <?= $p['price'] ?>})"
                                  class="cursor-pointer w-full bg-white p-4 rounded-2xl border border-gray-100 shadow-sm hover:shadow-xl active:scale-95 transition-all text-center flex flex-col items-center h-full">
                                 <div class="w-10 h-10 bg-indigo-50 rounded-lg flex items-center justify-center text-indigo-600 mb-3"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg></div>
                                 <span class="text-xs font-black text-gray-900 leading-tight mb-1 line-clamp-2"><?= htmlspecialchars($p['name']) ?></span>
@@ -124,7 +154,7 @@ class vue_barman {
                                         <p class="text-[10px] text-gray-400 font-bold uppercase tracking-tight"><?= htmlspecialchars($order['email']) ?></p>
                                         <p class="text-[9px] text-indigo-400 font-black uppercase mt-1"><?= date('H:i', strtotime($order['date_heure'])) ?></p>
                                     </div>
-                                    <a href="index.php?page=barman&id=<?= $buvetteId ?>&action=prepare_order&order_id=<?= $order['id'] ?>" 
+                                    <a href="index.php?page=barman&id=<?= $buvetteId ?>&action=prepare_order&order_id=<?= $order['id'] ?>"
                                        class="px-6 py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-[10px] tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition-transform">
                                         Terminer
                                     </a>
@@ -147,6 +177,7 @@ class vue_barman {
                 </div>
             </div>
         </div>
+
 
         <script src="https://unpkg.com/html5-qrcode"></script>
         <script>

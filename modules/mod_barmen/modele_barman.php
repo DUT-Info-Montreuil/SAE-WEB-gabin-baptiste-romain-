@@ -44,15 +44,28 @@ class modele_barman extends Connection {
         return $stmt->fetch();
     }
 
+    public function getBuvettesByBarman($barmanId) {
+        $sql = "SELECT DISTINCT b.id, b.nom 
+                FROM Buvette b 
+                JOIN Commande c ON b.id = c.id_buvette 
+                WHERE c.id_serveur = ?";
+        $stmt = self::$db->prepare($sql);
+        $stmt->execute([$barmanId]);
+        $buvettes = $stmt->fetchAll();
+
+        if (empty($buvettes)) {
+            $sql = "SELECT id, nom FROM Buvette";
+            $stmt = self::$db->query($sql);
+            $buvettes = $stmt->fetchAll();
+        }
+        return $buvettes;
+    }
+
     public function getPendingOrders($buvetteId) {
-        // On récupère les commandes qui n'ont pas de serveur assigné (Click & Collect)
-        // On exclut celles qui sont EN_ATTENTE de validation client
         $sql = "SELECT c.id, c.date_heure, c.montant_total, u.nom, u.prenom, u.email 
                 FROM Commande c
                 JOIN Utilisateur u ON c.id_client = u.id
-                WHERE c.id_buvette = ? 
-                AND c.id_serveur IS NULL 
-                AND (c.statut IS NULL OR c.statut = 'PAYEE')
+                WHERE c.id_buvette = ? AND c.id_serveur IS NULL
                 ORDER BY c.date_heure ASC";
         $stmt = self::$db->prepare($sql);
         $stmt->execute([$buvetteId]);
@@ -80,23 +93,23 @@ class modele_barman extends Connection {
                 $total += $item['price'] * $item['qty'];
             }
 
-            // 1. Vérifier le solde (sans débiter pour l'instant)
-            $stmt = self::$db->prepare("SELECT solde FROM Utilisateur WHERE id = ?");
+            $stmt = self::$db->prepare("SELECT solde FROM Utilisateur WHERE id = ? FOR UPDATE");
             $stmt->execute([$clientId]);
             $currentBalance = $stmt->fetchColumn();
 
             if ($currentBalance === false) throw new Exception("Client introuvable.");
             if ($currentBalance < $total) throw new Exception("Solde client insuffisant.");
 
-            // 2. Créer la commande avec le statut EN_ATTENTE
-            // On ne touche PAS au solde du client ni de la buvette ici.
-            // Ce sera fait lors de la validation par le client.
-            
-            $stmt = self::$db->prepare("INSERT INTO Commande (id_client, id_serveur, id_buvette, montant_total, statut) VALUES (?, ?, ?, ?, 'EN_ATTENTE')");
+            $updateStmt = self::$db->prepare("UPDATE Utilisateur SET solde = solde - ? WHERE id = ?");
+            $updateStmt->execute([$total, $clientId]);
+
+            $stmt = self::$db->prepare("UPDATE Buvette SET solde = solde + ? WHERE id = ?");
+            $stmt->execute([$total, $buvetteId]);
+
+            $stmt = self::$db->prepare("INSERT INTO Commande (id_client, id_serveur, id_buvette, montant_total) VALUES (?, ?, ?, ?)");
             $stmt->execute([$clientId, $barmanId, $buvetteId, $total]);
             $orderId = self::$db->lastInsertId();
 
-            // 3. Mettre à jour les stocks (on réserve les produits)
             foreach ($cart as $item) {
                 $stmt = self::$db->prepare("INSERT INTO composer (id_commande, id_produit, quantite, prix_unit) VALUES (?, ?, ?, ?)");
                 $stmt->execute([$orderId, $item['id'], $item['qty'], $item['price']]);

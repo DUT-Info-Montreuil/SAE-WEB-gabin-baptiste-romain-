@@ -24,18 +24,23 @@ class modele_gestion extends Connection {
         return $stmt->fetchColumn() === 'ROLE_GESTION';
     }
 
-    public function addProduct($name, $desc, $categorie, $price, $stock, $orgaId) {
-        $stmt = self::$db->prepare("INSERT INTO Produit (nom, description, categorie, prix_vente, stock_actuel, id_buvette) VALUES (?, ?, ?, ?, ?, ?)");
-        return $stmt->execute([$name, $desc, $categorie, $price, $stock, $orgaId]);
+    public function addProduct($name, $desc, $categorie, $price, $stock, $orgaId, $photo = null) {
+        $stmt = self::$db->prepare("INSERT INTO Produit (nom, description, categorie, prix_vente, stock_actuel, id_buvette, photo) VALUES (?, ?, ?, ?, ?, ?, ?)");
+        return $stmt->execute([$name, $desc, $categorie, $price, $stock, $orgaId, $photo]);
     }
 
-    public function updateProduct($id, $name, $desc, $categorie, $price) {
-        $stmt = self::$db->prepare("UPDATE Produit SET nom = ?, description = ?, categorie = ?, prix_vente = ? WHERE id = ?");
-        return $stmt->execute([$name, $desc, $categorie, $price, $id]);
+    public function updateProduct($id, $name, $desc, $categorie, $price, $photo = null) {
+        if ($photo) {
+            $stmt = self::$db->prepare("UPDATE Produit SET nom = ?, description = ?, categorie = ?, prix_vente = ?, photo = ? WHERE id = ?");
+            return $stmt->execute([$name, $desc, $categorie, $price, $photo, $id]);
+        } else {
+            $stmt = self::$db->prepare("UPDATE Produit SET nom = ?, description = ?, categorie = ?, prix_vente = ? WHERE id = ?");
+            return $stmt->execute([$name, $desc, $categorie, $price, $id]);
+        }
     }
 
     public function getProductsByOrga($orgaId) {
-        $stmt = self::$db->prepare("SELECT id, nom, prix_vente, description, categorie, stock_actuel AS stock FROM Produit WHERE id_buvette = ?");
+        $stmt = self::$db->prepare("SELECT id, nom, prix_vente, description, categorie, stock_actuel AS stock, photo FROM Produit WHERE id_buvette = ?");
         $stmt->execute([$orgaId]);
         return $stmt->fetchAll();
     }
@@ -126,6 +131,41 @@ class modele_gestion extends Connection {
         $stmt = self::$db->prepare("INSERT INTO etre_membre (id_utilisateur, id_buvette, role) VALUES (?, ?, ?) 
                                    ON DUPLICATE KEY UPDATE role = ?");
         return $stmt->execute([$userId, $orgaId, 'ROLE_BARMAN', 'ROLE_BARMAN']);
+    }
+
+    public function getPendingRequests($orgaId) {
+        $stmt = self::$db->prepare("SELECT * FROM Demande_Adhesion WHERE id_buvette = ? AND statut = 'EN_ATTENTE'");
+        $stmt->execute([$orgaId]);
+        return $stmt->fetchAll();
+    }
+
+    public function acceptRequest($requestId) {
+        try {
+            self::$db->beginTransaction();
+            
+            $stmt = self::$db->prepare("SELECT id_utilisateur, id_buvette FROM Demande_Adhesion WHERE id = ?");
+            $stmt->execute([$requestId]);
+            $req = $stmt->fetch();
+            
+            if (!$req) throw new Exception("Request not found");
+
+            $stmt = self::$db->prepare("UPDATE Demande_Adhesion SET statut = 'ACCEPTE' WHERE id = ?");
+            $stmt->execute([$requestId]);
+
+            $stmt = self::$db->prepare("INSERT INTO etre_membre (id_utilisateur, id_buvette, role) VALUES (?, ?, 'ROLE_USER')");
+            $stmt->execute([$req['id_utilisateur'], $req['id_buvette']]);
+
+            self::$db->commit();
+            return true;
+        } catch (Exception $e) {
+            self::$db->rollBack();
+            return false;
+        }
+    }
+
+    public function rejectRequest($requestId) {
+        $stmt = self::$db->prepare("UPDATE Demande_Adhesion SET statut = 'REFUSE' WHERE id = ?");
+        return $stmt->execute([$requestId]);
     }
 }
 ?>

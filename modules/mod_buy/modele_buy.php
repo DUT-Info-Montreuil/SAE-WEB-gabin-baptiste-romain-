@@ -18,7 +18,7 @@ class modele_buy extends Connection {
         return $stmt->fetch();
     }
 
-    public function processPurchase($userId, $cart) {
+    public function processPurchase($userId, $cart, $buvetteId) {
         try {
             self::$db->beginTransaction();
 
@@ -27,19 +27,21 @@ class modele_buy extends Connection {
                 $total += $item['price'] * $item['quantity'];
             }
 
-            $stmt = self::$db->prepare("SELECT solde FROM Utilisateur WHERE id = ? FOR UPDATE");
-            $stmt->execute([$userId]);
+            // Check balance in Solde table for this buvette
+            $stmt = self::$db->prepare("SELECT solde FROM Solde WHERE id_utilisateur = ? AND id_buvette = ? FOR UPDATE");
+            $stmt->execute([$userId, $buvetteId]);
             $balance = $stmt->fetchColumn();
 
+            // If no record, balance is 0
+            if ($balance === false) $balance = 0;
+
             if ($balance < $total) {
-                throw new Exception("Solde insuffisant.");
+                throw new Exception("Solde insuffisant pour cette buvette (Solde: " . number_format($balance, 2) . " €).");
             }
 
-            $stmt = self::$db->prepare("UPDATE Utilisateur SET solde = solde - ? WHERE id = ?");
-            $stmt->execute([$total, $userId]);
-
-            $firstItem = reset($cart);
-            $buvetteId = $firstItem['id_buvette'];
+            // Deduct from Solde
+            $stmt = self::$db->prepare("UPDATE Solde SET solde = solde - ? WHERE id_utilisateur = ? AND id_buvette = ?");
+            $stmt->execute([$total, $userId, $buvetteId]);
 
             $stmt = self::$db->prepare("INSERT INTO Commande (id_client, montant_total, id_buvette) VALUES (?, ?, ?)");
             $stmt->execute([$userId, $total, $buvetteId]);

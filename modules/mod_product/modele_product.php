@@ -8,7 +8,7 @@ class modele_product extends Connection {
     }
 
     public function getProductById($id) {
-        $stmt = self::$db->prepare("SELECT id, nom AS name, prix_vente AS price, stock_actuel AS stock, description, id_buvette FROM Produit WHERE id = ?");
+        $stmt = self::$db->prepare("SELECT id, nom AS name, prix_vente AS price, stock_actuel AS stock, description, id_buvette, photo FROM Produit WHERE id = ?");
         $stmt->execute([$id]);
         return $stmt->fetch();
     }
