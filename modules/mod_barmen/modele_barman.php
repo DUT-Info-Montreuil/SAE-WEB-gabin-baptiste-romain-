@@ -44,7 +44,26 @@ class modele_barman extends Connection {
         return $stmt->fetch();
     }
 
-    public function getPendingOrders($buvetteId) {
+    public function getBuvettesByBarman($barmanId) {
+            // On récupère les buvettes où le barman a déjà servi des commandes
+            $sql = "SELECT DISTINCT b.id, b.nom 
+                    FROM Buvette b 
+                    JOIN Commande c ON b.id = c.id_buvette 
+                    WHERE c.id_serveur = ?";
+            $stmt = self::$db->prepare($sql);
+            $stmt->execute([$barmanId]);
+            $buvettes = $stmt->fetchAll();
+
+            // Si le barman n'a pas encore de commandes à son actif, on lui propose toutes les buvettes
+            if (empty($buvettes)) {
+                $sql = "SELECT id, nom FROM Buvette";
+                $stmt = self::$db->query($sql);
+                $buvettes = $stmt->fetchAll();
+            }
+            return $buvettes;
+        }
+
+        public function getPendingOrders($buvetteId) {
         $sql = "SELECT c.id, c.date_heure, c.montant_total, u.nom, u.prenom, u.email 
                 FROM Commande c
                 JOIN Utilisateur u ON c.id_client = u.id

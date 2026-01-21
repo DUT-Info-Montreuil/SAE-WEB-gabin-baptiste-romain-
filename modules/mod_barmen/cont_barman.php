@@ -10,7 +10,7 @@ class cont_barman {
     public function __construct() {
         $this->modele = new modele_barman();
         $this->vue = new vue_barman();
-        $this->action = isset($_GET["action"]) ? $_GET["action"] : "caisse";
+        $this->action = isset($_GET["action"]) ? $_GET["action"] : "dashboard";
     }
 
     public function exec() {
@@ -23,6 +23,12 @@ class cont_barman {
         if (!isset($_SESSION['selected_client'])) $_SESSION['selected_client'] = null;
 
         switch ($this->action) {
+            case "dashboard":
+                $this->afficher_dashboard();
+                break;
+            case "select_buvette":
+                $this->select_buvette();
+                break;
             case "caisse":
                 $this->afficher_caisse();
                 break;
@@ -48,6 +54,21 @@ class cont_barman {
                 $this->validate_purchase();
                 break;
         }
+    }
+
+    public function afficher_dashboard() {
+        $buvettes = $this->modele->getBuvettesByBarman($_SESSION['user_id']);
+        $this->vue->afficher_dashboard($buvettes);
+    }
+
+    public function select_buvette() {
+        $buvetteId = $_GET['id'] ?? null;
+        if ($buvetteId) {
+            header("Location: index.php?page=barman&action=caisse&id=" . $buvetteId);
+            exit;
+        }
+        header("Location: index.php?page=barman&action=dashboard");
+        exit;
     }
 
     public function afficher_caisse($msgSuccess = null, $msgError = null) {
