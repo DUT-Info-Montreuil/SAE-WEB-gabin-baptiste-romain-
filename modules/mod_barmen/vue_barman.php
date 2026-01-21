@@ -1,20 +1,21 @@
 <?php
 class vue_barman {
     public function menu() {}
+
     public function afficher_dashboard($buvettes) {
         ?>
         <div class="max-w-7xl mx-auto px-4 py-12">
             <header class="mb-10 text-center">
-                <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tighter mb-2">Tableau de bord</h1>
-                <p class="text-gray-500 font-medium">Sélectionnez votre lieu de service actuel</p>
+                <h1 class="text-4xl font-black text-gray-900 uppercase tracking-tighter mb-2">Tableau de bord Barman</h1>
+                <p class="text-gray-500 font-medium italic">Où travaillez-vous aujourd'hui ?</p>
             </header>
 
             <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
                 <?php foreach ($buvettes as $buvette): ?>
-                    <a href="index.php?page=barman&action=select_buvette&id=<?= $buvette['id'] ?>"
+                    <a href="index.php?page=barman&action=select_buvette&id=<?= $buvette['id'] ?>" 
                        class="group bg-white p-8 rounded-3xl shadow-sm border border-gray-100 hover:border-indigo-500 hover:shadow-xl transition-all relative overflow-hidden">
                         <div class="relative z-10">
-                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-2 block">Buvette</span>
+                            <span class="text-[10px] font-black uppercase tracking-widest text-indigo-500 mb-2 block">Accéder à la</span>
                             <h2 class="text-2xl font-black text-gray-900 group-hover:text-indigo-600 transition-colors"><?= htmlspecialchars($buvette['nom']) ?></h2>
                         </div>
                         <div class="absolute -right-4 -bottom-4 text-gray-50 group-hover:text-indigo-50 transition-colors">
@@ -26,6 +27,7 @@ class vue_barman {
         </div>
         <?php
     }
+
     public function afficher_interface($products, $searchResults, $searchQuery, $pendingOrders, $msgSuccess = null, $msgError = null) {
         $client = $_SESSION['selected_client'] ?? null;
         $cart = $_SESSION['cart_barman'] ?? [];
@@ -36,9 +38,12 @@ class vue_barman {
 
         <div id="app-barman" class="pb-12">
             <div class="max-w-7xl mx-auto px-4 py-6">
-                <header class="mb-6">
-                    <a href="index.php?page=profile" class="text-indigo-600 font-bold text-xs uppercase flex items-center">
+                <header class="mb-6 flex justify-between items-center">
+                    <a href="index.php?page=barman&action=dashboard" class="text-indigo-600 font-bold text-xs uppercase flex items-center">
                         <svg class="w-4 h-4 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7"></path></svg>
+                        Changer de Buvette
+                    </a>
+                    <a href="index.php?page=profile" class="text-gray-400 font-bold text-xs uppercase flex items-center hover:text-gray-600">
                         Retour au Profil
                     </a>
                 </header>
@@ -76,6 +81,7 @@ class vue_barman {
                 <div v-show="currentTab === 'client'" class="max-w-2xl mx-auto space-y-6">
                     <form action="index.php" method="GET" class="relative">
                         <input type="hidden" name="page" value="barman">
+                        <input type="hidden" name="action" value="caisse">
                         <input type="hidden" name="id" value="<?= $buvetteId ?>">
                         <input type="text" name="q" id="search-input" placeholder="Email du client..." value="<?= htmlspecialchars($searchQuery) ?>" class="w-full pl-14 pr-4 py-5 bg-white border-2 border-gray-100 rounded-3xl focus:border-indigo-500 focus:outline-none shadow-xl transition-all font-bold text-lg">
                         <svg class="w-6 h-6 absolute left-5 top-5 text-gray-400" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path></svg>

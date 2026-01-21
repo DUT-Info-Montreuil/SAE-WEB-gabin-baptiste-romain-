@@ -10,6 +10,7 @@ class cont_barman {
     public function __construct() {
         $this->modele = new modele_barman();
         $this->vue = new vue_barman();
+        // L'action par défaut est maintenant le dashboard
         $this->action = isset($_GET["action"]) ? $_GET["action"] : "dashboard";
     }
 
@@ -64,6 +65,7 @@ class cont_barman {
     public function select_buvette() {
         $buvetteId = $_GET['id'] ?? null;
         if ($buvetteId) {
+            // Redirection explicite vers la caisse de cette buvette
             header("Location: index.php?page=barman&action=caisse&id=" . $buvetteId);
             exit;
         }
