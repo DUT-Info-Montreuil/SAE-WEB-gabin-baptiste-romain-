@@ -21,6 +21,10 @@ class cont_solde{
         }
 
         switch($this->action) {
+<<<<<<< Updated upstream:mod_solde/cont_solde.php
+=======
+            case 'add':
+>>>>>>> Stashed changes:modules/mod_solde/cont_solde.php
             case 'recharge':
                 $this->recharge();
                 break;
@@ -33,7 +37,12 @@ class cont_solde{
 
     private function showBalance($message = null) {
         $balance = $this->model->getBalance($_SESSION['user_id']);
+<<<<<<< Updated upstream:mod_solde/cont_solde.php
         $this->view->displayBalance($balance, $message);
+=======
+        $history = $this->model->getOrderHistory($_SESSION['user_id']);
+        $this->view->displayBalance($balance, $history, $message);
+>>>>>>> Stashed changes:modules/mod_solde/cont_solde.php
     }
 
     private function recharge() {
