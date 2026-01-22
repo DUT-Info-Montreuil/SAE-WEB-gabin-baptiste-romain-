@@ -43,16 +43,18 @@ class vue_orga {
 
                         <div class="flex flex-wrap gap-3 items-center">
                             <?php if (isset($_SESSION['user_id'])): ?>
-                                <a href="index.php?page=solde&buvette_id=<?= $orga['id'] ?>" class="flex items-center bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 transition hover:bg-indigo-100">
-                                    <span class="text-xs font-black text-indigo-400 uppercase mr-2">Solde</span>
-                                    <span class="text-indigo-700 font-black"><?= number_format($balance, 2) ?> €</span>
-                                </a>
+                                <?php if ($isMember): ?>
+                                    <a href="index.php?page=solde&buvette_id=<?= $orga['id'] ?>" class="flex items-center bg-indigo-50 px-4 py-2 rounded-xl border border-indigo-100 transition hover:bg-indigo-100">
+                                        <span class="text-xs font-black text-indigo-400 uppercase mr-2">Solde</span>
+                                        <span class="text-indigo-700 font-black"><?= number_format($balance, 2) ?> €</span>
+                                    </a>
 
-                                <a href="index.php?page=buy&buvette_id=<?= $orga['id'] ?>" class="flex items-center bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm transition hover:bg-gray-50 relative group text-gray-600 hover:text-indigo-600">
-                                    <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
-                                    <span class="text-xs font-black uppercase">Panier</span>
-                                    <span class="cart-badge absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white shadow-sm" style="<?= $cartCount > 0 ? '' : 'display:none;' ?>"><?= $cartCount ?></span>
-                                </a>
+                                    <a href="index.php?page=buy&buvette_id=<?= $orga['id'] ?>" class="flex items-center bg-white px-4 py-2 rounded-xl border border-gray-200 shadow-sm transition hover:bg-gray-50 relative group text-gray-600 hover:text-indigo-600">
+                                        <svg class="w-5 h-5 mr-1" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 3h2l.4 2M7 13h10l4-8H5.4M7 13L5.4 5M7 13l-2.293 2.293c-.63.63-.184 1.707.707 1.707H17m0 0a2 2 0 100 4 2 2 0 000-4zm-8 2a2 2 0 11-4 0 2 2 0 014 0z"></path></svg>
+                                        <span class="text-xs font-black uppercase">Panier</span>
+                                        <span class="cart-badge absolute -top-2 -right-2 bg-red-500 text-white text-[9px] font-black px-1.5 py-0.5 rounded-full ring-2 ring-white shadow-sm" style="<?= $cartCount > 0 ? '' : 'display:none;' ?>"><?= $cartCount ?></span>
+                                    </a>
+                                <?php endif; ?>
 
                                 <?php if (!$isMember): ?>
                                     <?php if ($isPending): ?>
@@ -161,23 +163,25 @@ class vue_orga {
                                 Infos
                             </a>
                             
-                            <div v-if="product.stock > 0" class="cart-controls card-controls" :data-product-id="product.id">
-                                <div v-if="!product.qty" class="h-12">
-                                    <button @click="updateCart(product.id, 'add')" class="btn-add block w-full py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition h-full flex items-center justify-center">
-                                        Ajouter
-                                    </button>
+                            <div v-if="isMember">
+                                <div v-if="product.stock > 0" class="cart-controls card-controls" :data-product-id="product.id">
+                                    <div v-if="!product.qty" class="h-12">
+                                        <button @click="updateCart(product.id, 'add')" class="btn-add block w-full py-3 bg-indigo-600 text-white rounded-xl font-black uppercase text-xs tracking-widest shadow-lg shadow-indigo-100 active:scale-95 transition h-full flex items-center justify-center">
+                                            Ajouter
+                                        </button>
+                                    </div>
+                                    <div v-else class="h-12 flex items-center justify-between bg-indigo-50 rounded-xl p-1 border border-indigo-100">
+                                        <button @click="updateCart(product.id, 'remove_one')" class="w-10 h-full flex items-center justify-center bg-white rounded-lg text-indigo-600 shadow-sm active:scale-90 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
+                                        </button>
+                                        <span class="qty-val font-black text-indigo-900 text-sm">{{ product.qty }}</span>
+                                        <button @click="updateCart(product.id, 'add')" class="w-10 h-full flex items-center justify-center bg-indigo-600 rounded-lg text-white shadow-md active:scale-90 transition">
+                                            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
+                                        </button>
+                                    </div>
                                 </div>
-                                <div v-else class="h-12 flex items-center justify-between bg-indigo-50 rounded-xl p-1 border border-indigo-100">
-                                    <button @click="updateCart(product.id, 'remove_one')" class="w-10 h-full flex items-center justify-center bg-white rounded-lg text-indigo-600 shadow-sm active:scale-90 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M20 12H4"></path></svg>
-                                    </button>
-                                    <span class="qty-val font-black text-indigo-900 text-sm">{{ product.qty }}</span>
-                                    <button @click="updateCart(product.id, 'add')" class="w-10 h-full flex items-center justify-center bg-indigo-600 rounded-lg text-white shadow-md active:scale-90 transition">
-                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="3" d="M12 6v6m0 0v6m0-6h6m-6 0H6"></path></svg>
-                                    </button>
-                                </div>
+                                <div v-else class="py-3 text-center text-red-400 font-black uppercase text-[10px] tracking-widest h-12 flex items-center justify-center italic">Épuisé</div>
                             </div>
-                            <div v-else class="py-3 text-center text-red-400 font-black uppercase text-[10px] tracking-widest h-12 flex items-center justify-center italic">Épuisé</div>
                         </div>
                     </div>
                 </div>
@@ -196,13 +200,14 @@ class vue_orga {
                                                 const cart = <?= json_encode($_SESSION['cart'] ?? []) ?>;
                                                 const products = <?= json_encode($products) ?>.map(p => ({
                                                     ...p,
-                                                    qty: cart[p.id] ? cart[p.id].quantity : 0,
-                                                    in_cart: cart[p.id] ? true : false
+                                                    qty: cart[p.id_buvette] && cart[p.id_buvette][p.id] ? cart[p.id_buvette][p.id].quantity : 0,
+                                                    in_cart: cart[p.id_buvette] && cart[p.id_buvette][p.id] ? true : false
                                                 }));
                                                 return {
                                                     products: products,
                                                     filterCat: '',
-                                                    showJoinModal: false
+                                                    showJoinModal: false,
+                                                    isMember: <?= json_encode($isMember) ?>
                                                 }
                                             },                    computed: {
                         categories() {

@@ -162,6 +162,7 @@ class vue_gestion {
                                         <th class="pb-4 pl-2">Nom du Produit</th>
                                         <th class="pb-4 text-right">Quantité en Stock</th>
                                         <th class="pb-4 text-right pr-2">Alerte</th>
+                                        <th class="pb-4 text-right pr-2">Correction</th>
                                     </tr>
                                 </thead>
                                 <tbody class="divide-y divide-gray-50">
@@ -170,6 +171,15 @@ class vue_gestion {
                                             <td class="py-4 pl-2"><?= htmlspecialchars($p['nom']) ?></td>
                                             <td class="py-4 text-right"><span class="inline-block px-3 py-1 rounded-lg <?= $p['stock'] > 5 ? 'bg-gray-100 text-gray-600' : 'bg-red-50 text-red-600' ?>"><?= $p['stock'] ?> unités</span></td>
                                             <td class="py-4 text-right pr-2 text-xs"><?php if($p['stock'] <= 0): ?><span class="text-red-500 font-black uppercase">Rupture</span><?php elseif($p['stock'] <= 5): ?><span class="text-amber-500 font-black uppercase">Faible</span><?php else: ?><span class="text-green-500 font-black uppercase">OK</span><?php endif; ?></td>
+                                            <td class="py-4 text-right pr-2">
+                                                <form action="index.php?page=gestion&id=<?= $orga['id'] ?>&action=adjust_stock_simple" method="POST" class="flex justify-end gap-2 items-center">
+                                                    <input type="hidden" name="product_id" value="<?= $p['id'] ?>">
+                                                    <input type="number" name="quantity" placeholder="+/-" required class="w-16 px-2 py-1 bg-white border border-gray-200 rounded-lg text-xs font-bold focus:ring-1 focus:ring-indigo-500 focus:outline-none text-right">
+                                                    <button type="submit" class="p-1.5 bg-gray-100 hover:bg-indigo-100 text-gray-600 hover:text-indigo-600 rounded-lg transition-colors">
+                                                        <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"></path></svg>
+                                                    </button>
+                                                </form>
+                                            </td>
                                         </tr>
                                     <?php endforeach; ?>
                                 </tbody>

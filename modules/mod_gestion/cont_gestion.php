@@ -40,6 +40,9 @@ class cont_gestion {
             case 'add_stock':
                 $this->addStock();
                 break;
+            case 'adjust_stock_simple':
+                $this->adjustStockSimple();
+                break;
             case 'add_barman_existing':
                 $this->addBarmanExisting();
                 break;
@@ -111,6 +114,21 @@ class cont_gestion {
             }
         } else {
             $this->display("Tous les champs sont obligatoires pour l'entrée de stock.");
+        }
+    }
+
+    private function adjustStockSimple() {
+        $productId = $_POST['product_id'] ?? null;
+        $quantity = $_POST['quantity'] ?? 0;
+
+        if ($productId && $quantity != 0) {
+            if ($this->model->adjustStockSimple($productId, $quantity, $this->orgaId)) {
+                $this->display("Stock ajusté (correction) avec succès !");
+            } else {
+                $this->display("Erreur lors de la correction du stock.");
+            }
+        } else {
+            $this->display("Quantité invalide pour la correction.");
         }
     }
 

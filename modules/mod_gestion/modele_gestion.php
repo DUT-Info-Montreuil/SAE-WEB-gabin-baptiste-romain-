@@ -167,5 +167,14 @@ class modele_gestion extends Connection {
         $stmt = self::$db->prepare("UPDATE Demande_Adhesion SET statut = 'REFUSE' WHERE id = ?");
         return $stmt->execute([$requestId]);
     }
+
+    public function adjustStockSimple($productId, $quantity, $orgaId) {
+        $stmt = self::$db->prepare("SELECT id FROM Produit WHERE id = ? AND id_buvette = ?");
+        $stmt->execute([$productId, $orgaId]);
+        if (!$stmt->fetch()) return false;
+
+        $stmt = self::$db->prepare("UPDATE Produit SET stock_actuel = stock_actuel + ? WHERE id = ?");
+        return $stmt->execute([$quantity, $productId]);
+    }
 }
 ?>

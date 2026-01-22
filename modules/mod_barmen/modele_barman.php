@@ -17,6 +17,25 @@ class modele_barman extends Connection {
         }
     }
 
+    public function getProductsByBuvette($buvetteId) {
+        $sql = "SELECT id, nom AS name, prix_vente AS price, stock_actuel AS stock, description, categorie, photo 
+                FROM Produit 
+                WHERE id_buvette = ? 
+                ORDER BY categorie, nom ASC";
+        $stmt = self::$db->prepare($sql);
+        $stmt->execute([$buvetteId]);
+        return $stmt->fetchAll();
+    }
+
+    public function adjustStock($productId, $quantity, $buvetteId) {
+        $stmt = self::$db->prepare("SELECT id FROM Produit WHERE id = ? AND id_buvette = ?");
+        $stmt->execute([$productId, $buvetteId]);
+        if (!$stmt->fetch()) return false;
+
+        $stmt = self::$db->prepare("UPDATE Produit SET stock_actuel = stock_actuel + ? WHERE id = ?");
+        return $stmt->execute([$quantity, $productId]);
+    }
+
     public function searchClient($query) {
         $sql = "SELECT id, email, solde AS balance 
                 FROM Utilisateur 

@@ -54,6 +54,9 @@ class cont_barman {
             case "validate_purchase":
                 $this->validate_purchase();
                 break;
+            case "adjust_stock":
+                $this->adjust_stock();
+                break;
         }
     }
 
@@ -90,9 +93,33 @@ class cont_barman {
                 $searchResults = $this->modele->searchClient($searchQuery);
             }
         }
-        $products = $this->modele->getAllProducts();
+        
+        // Use getProductsByBuvette if buvetteId is available, otherwise fallback to getAllProducts (though in barman context id should be set)
+        if ($buvetteId) {
+            $products = $this->modele->getProductsByBuvette($buvetteId);
+        } else {
+            $products = $this->modele->getAllProducts();
+        }
+
         $pendingOrders = $this->modele->getPendingOrders($buvetteId);
         $this->vue->afficher_interface($products, $searchResults, $searchQuery, $pendingOrders, $msgSuccess, $msgError);
+    }
+
+    public function adjust_stock() {
+        $productId = $_POST['product_id'] ?? null;
+        $quantity = $_POST['quantity'] ?? 0;
+        $buvetteId = $_GET['id'] ?? null;
+        
+        if ($productId && $quantity != 0 && $buvetteId) {
+            if ($this->modele->adjustStock($productId, $quantity, $buvetteId)) {
+                // Success
+            }
+        }
+        
+        $currentTab = isset($_POST['current_tab']) ? $_POST['current_tab'] : 'stock';
+        // We can pass a parameter to keep the tab open, handled in vue
+        header("Location: index.php?page=barman&action=caisse&id=" . $buvetteId . "&tab=" . $currentTab);
+        exit;
     }
 
     public function add_to_cart() {

@@ -18,6 +18,12 @@ class modele_buy extends Connection {
         return $stmt->fetch();
     }
 
+    public function isMember($userId, $buvetteId) {
+        $stmt = self::$db->prepare("SELECT 1 FROM etre_membre WHERE id_utilisateur = ? AND id_buvette = ?");
+        $stmt->execute([$userId, $buvetteId]);
+        return (bool)$stmt->fetch();
+    }
+
     public function processPurchase($userId, $cart, $buvetteId) {
         try {
             self::$db->beginTransaction();

@@ -19,10 +19,12 @@ session_start();
 
         $navBalance = 0;
         $cartCount = 0;
+        $hasStaffAccess = false;
         if (isset($_SESSION['user_id'])) {
             require_once 'modules/mod_home/modele_home.php';
             $homeModel = new modele_home();
             $navBalance = $homeModel->getUserBalance($_SESSION['user_id']);
+            $hasStaffAccess = $homeModel->hasStaffRole($_SESSION['user_id']);
             
             if(isset($_SESSION['cart'])) {
                 foreach($_SESSION['cart'] as $item) $cartCount += $item['quantity'];
@@ -39,6 +41,9 @@ session_start();
                     <nav class="flex items-center space-x-2">
                         <a href="index.php" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition <?= ($page === 'home' && $currentView === 'all') ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50' ?>">Accueil</a>
                         <a href="index.php?view=favorites" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition <?= ($currentView === 'favorites') ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50' ?>">Favoris</a>
+                        <?php if ($hasStaffAccess): ?>
+                            <a href="index.php?page=staff" class="px-4 py-2 rounded-xl text-xs font-black uppercase tracking-widest transition <?= ($page === 'staff') ? 'bg-indigo-600 text-white shadow-lg' : 'text-gray-500 hover:text-indigo-600 hover:bg-indigo-50' ?>">Staff</a>
+                        <?php endif; ?>
                     </nav>
                 </div>
                 <div class="flex items-center space-x-4">
@@ -64,6 +69,7 @@ session_start();
                 case 'solde': require_once 'modules/mod_solde/mod_solde.php'; (new mod_solde())->exec(); break;
                 case 'buy': require_once 'modules/mod_buy/mod_buy.php'; (new mod_buy())->exec(); break;
                 case 'admin': require_once 'modules/mod_admin/mod_admin.php'; (new mod_admin())->exec(); break;
+                case 'staff': require_once 'modules/mod_staff/mod_staff.php'; (new mod_staff())->exec(); break;
                 case 'home': default: require_once 'modules/mod_home/mod_home.php'; (new mod_home())->exec(); break;
             }
             ?>
@@ -77,6 +83,12 @@ session_start();
             </a>
 
             <?php if(isset($_SESSION['user_id'])): ?>
+                <?php if ($hasStaffAccess): ?>
+                <a href="index.php?page=staff" class="-mt-10 flex flex-col items-center justify-center w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-lg transition active:scale-90 text-gray-400">
+                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path></svg>
+                    <span class="text-[7px] font-black uppercase mt-0.5">Staff</span>
+                </a>
+                <?php endif; ?>
                 <a href="index.php?page=profile" class="-mt-10 flex flex-col items-center justify-center w-14 h-14 rounded-2xl bg-white border border-gray-100 shadow-lg transition active:scale-90 text-gray-400">
                     <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z"></path></svg>
                     <span class="text-[7px] font-black uppercase mt-0.5">Profil</span>

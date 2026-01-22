@@ -1,17 +1,14 @@
 <?php
 class vue_product {
-    public function displayProduct($p) {
+    public function displayProduct($p, $isMember = false) {
         if(!$p) { 
             echo "<div class='p-12 text-center'><h2 class='text-2xl font-black text-gray-400'>Produit non trouvé</h2></div>"; 
             return; 
         }
         $cart = $_SESSION['cart'] ?? [];
         $qty = 0;
-        foreach ($cart as $buvetteItems) {
-            if (isset($buvetteItems[$p['id']])) {
-                $qty = $buvetteItems[$p['id']]['quantity'];
-                break;
-            }
+        if (isset($cart[$p['id_buvette']][$p['id']])) {
+            $qty = $cart[$p['id_buvette']][$p['id']]['quantity'];
         }
         ?>
         <div class="pb-20 md:pb-8 pt-4" id="product-container-<?= $p['id'] ?>">
@@ -54,7 +51,7 @@ class vue_product {
                             <?php endif; ?>
                         </div>
 
-                        <?php if(($p['stock'] ?? 0) > 0): ?>
+                        <?php if($isMember && ($p['stock'] ?? 0) > 0): ?>
                             <div class="w-full sm:w-64 cart-controls detail-controls" data-product-id="<?= $p['id'] ?>">
                                 <?php $this->renderDetailControls($p['id'], $qty); ?>
                             </div>

@@ -19,7 +19,13 @@ class cont_product {
         }
 
         $product = $this->model->getProductById($id);
-        $this->view->displayProduct($product);
+        
+        $isMember = false;
+        if ($product && isset($_SESSION['user_id'])) {
+            $isMember = $this->model->isMember($_SESSION['user_id'], $product['id_buvette']);
+        }
+
+        $this->view->displayProduct($product, $isMember);
     }
 }
 ?>

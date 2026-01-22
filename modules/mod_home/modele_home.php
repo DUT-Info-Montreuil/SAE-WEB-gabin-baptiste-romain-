@@ -63,5 +63,17 @@ class modele_home extends Connection {
         $stmt->execute([$id]);
         return $stmt->fetchColumn() ?: 0;
     }
+
+    public function hasStaffRole($userId) {
+        // Check Admin
+        $stmt = self::$db->prepare("SELECT est_admin FROM Utilisateur WHERE id = ?");
+        $stmt->execute([$userId]);
+        if ($stmt->fetchColumn()) return true;
+
+        // Check Buvette Roles
+        $stmt = self::$db->prepare("SELECT 1 FROM etre_membre WHERE id_utilisateur = ? AND role IN ('ROLE_GESTION', 'ROLE_BARMAN') LIMIT 1");
+        $stmt->execute([$userId]);
+        return (bool)$stmt->fetchColumn();
+    }
 }
 ?>

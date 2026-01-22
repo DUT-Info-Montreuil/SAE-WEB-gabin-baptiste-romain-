@@ -50,8 +50,20 @@ class cont_buy {
         if($productId) {
             $product = $this->model->getProductInfo($productId);
             if($product) {
-                if(!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
                 $buvetteId = $product['id_buvette'];
+                
+                // Membership check
+                if (!isset($_SESSION['user_id']) || !$this->model->isMember($_SESSION['user_id'], $buvetteId)) {
+                    if(isset($_GET['ajax'])) {
+                        header('Content-Type: application/json');
+                        echo json_encode(['success' => false, 'error' => 'Vous devez être adhérent de cette buvette pour commander.']);
+                        exit;
+                    }
+                    header("Location: index.php?page=orga&id=" . $buvetteId);
+                    exit;
+                }
+
+                if(!isset($_SESSION['cart'])) $_SESSION['cart'] = [];
                 
                 if(!isset($_SESSION['cart'][$buvetteId])) {
                     $_SESSION['cart'][$buvetteId] = [];
@@ -87,17 +99,31 @@ class cont_buy {
         if ($productId && isset($_SESSION['cart'])) {
             foreach ($_SESSION['cart'] as $buvetteId => &$items) {
                 if (isset($items[$productId])) {
-                    $items[$productId]['quantity']--;
-                    $qty = $items[$productId]['quantity'];
                     $foundBuvetteId = $buvetteId;
-                    if ($items[$productId]['quantity'] <= 0) {
-                        unset($items[$productId]);
-                        $qty = 0;
-                        if (empty($items)) {
-                            unset($_SESSION['cart'][$buvetteId]);
-                        }
-                    }
                     break;
+                }
+            }
+        }
+
+        if ($foundBuvetteId) {
+             // Membership check
+             if (!isset($_SESSION['user_id']) || !$this->model->isMember($_SESSION['user_id'], $foundBuvetteId)) {
+                if(isset($_GET['ajax'])) {
+                    header('Content-Type: application/json');
+                    echo json_encode(['success' => false, 'error' => 'Action non autorisée.']);
+                    exit;
+                }
+                header("Location: index.php?page=orga&id=" . $foundBuvetteId);
+                exit;
+            }
+
+            $_SESSION['cart'][$foundBuvetteId][$productId]['quantity']--;
+            $qty = $_SESSION['cart'][$foundBuvetteId][$productId]['quantity'];
+            if ($_SESSION['cart'][$foundBuvetteId][$productId]['quantity'] <= 0) {
+                unset($_SESSION['cart'][$foundBuvetteId][$productId]);
+                $qty = 0;
+                if (empty($_SESSION['cart'][$foundBuvetteId])) {
+                    unset($_SESSION['cart'][$foundBuvetteId]);
                 }
             }
         }
